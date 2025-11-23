@@ -1,0 +1,12 @@
+#cloud-config
+package_update: true
+packages:
+  - curl
+  - wget
+
+runcmd:
+  - until curl -sSL https://raw.githubusercontent.com/ametysti/cloud-init/main/init.sh -o /tmp/init.sh; do sleep 2; done
+  - chmod +x /tmp/init.sh
+  # IMPORTANT
+  # PASTE TS_AUTH_KEY BELOW
+  - TS_AUTH_KEY="" /tmp/init.sh
