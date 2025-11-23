@@ -4,6 +4,7 @@ packages:
   - curl
   - wget
   - cron
+  - ipset
 
 runcmd:
   # setup initialization script
