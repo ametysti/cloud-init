@@ -9,9 +9,12 @@ personal init script for servers
 
 
 ## tested working on
-- debian 13 (hetzner using cloud-init)
-- debian 12 (hetzner using cloud-init)
-- debian 11 (hetzner using cloud-init)
+all tested on hetzner cloud servers using cloud-init
+- debian 13
+- debian 12
+- debian 11
+- ubuntu 24.04
+- Ubuntu 22.04
 
 
 ## cloud-init config for providers
