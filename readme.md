@@ -1,13 +1,14 @@
-personal init script for servers
+# cloud-init
+## personal init script for servers
 
-### features
+## features
 - tailscale installation
 - node_exporter that listens on the tailscale interface only. for monitoring the server
 - iptables rules for allowing cloudflare and bunny.net traffic. configure port access in cdn-whitelist.sh as you should not open every port to a cdn provider.
 - sets hourly cronjob for the cdn whitelist.
 
 
-### tested working on
+## tested working on
 - debian 13 (hetzner using cloud-init)
 - debian 12 (hetzner using cloud-init)
 - debian 11 (hetzner using cloud-init)
