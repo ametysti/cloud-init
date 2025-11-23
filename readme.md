@@ -1,5 +1,5 @@
 # cloud-init
-## personal init script for servers
+personal init script for servers
 
 ## features
 - tailscale installation
