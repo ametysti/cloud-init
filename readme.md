@@ -14,7 +14,7 @@ all tested on hetzner cloud servers using cloud-init
 - debian 12
 - debian 11
 - ubuntu 24.04
-- Ubuntu 22.04
+- ubuntu 22.04
 
 
 ## cloud-init config for providers
