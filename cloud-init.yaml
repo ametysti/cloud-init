@@ -8,12 +8,12 @@ packages:
 
 runcmd:
   # setup initialization script
-  - until curl -sSL https://raw.githubusercontent.com/ametysti/cloud-init/main/init.sh -o /tmp/init.sh; do sleep 2; done
+  - until curl -sSL https://gitlab.com/ametysti/cloud-init/-/raw/main/init.sh -o /tmp/init.sh; do sleep 2; done
   - chmod +x /tmp/init.sh
   - TS_AUTH_KEY="" /tmp/init.sh
 
   # setup cdn-whitelist and crontab
-  - until curl -sSL https://raw.githubusercontent.com/ametysti/cloud-init/main/cdn-whitelist.sh -o /opt/cdn-whitelist.sh; do sleep 2; done
+  - until curl -sSL https://gitlab.com/ametysti/cloud-init/-/raw/main/cdn-whitelist.sh -o /opt/cdn-whitelist.sh; do sleep 2; done
   - chmod +x /opt/cdn-whitelist.sh
   - /opt/cdn-whitelist.sh
   - crontab -l | { cat; echo "0 * * * * /opt/cdn-whitelist.sh >/dev/null 2>&1"; } | crontab -

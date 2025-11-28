@@ -29,12 +29,27 @@ until [ ! -z "$TS_IP" ]; do
   sleep 1
 done
 
-echo "installing node_exporter from github"
-wget -O /tmp/ne.tar.gz $(curl -s https://api.github.com/repos/prometheus/node_exporter/releases/latest | grep "browser_download_url" | grep "linux-amd64.tar.gz" | cut -d '"' -f 4 | head -n 1)
+echo "installing node_exporter from sourceforge (mirror from github)"
+SF_URL="https://sourceforge.net/projects/node-exporter.mirror/files/"
 
-tar xf /tmp/ne.tar.gz -C /tmp
+VER=$(wget -qO- "$SF_URL" \
+  | grep -oP 'href="/projects/node-exporter\.mirror/files/v[0-9]+\.[0-9]+\.[0-9]+/"' \
+  | sed -E 's|href="/projects/node-exporter\.mirror/files/||; s|/||; s|"||g' \
+  | sort -V | tail -n1)
+
+if [[ -z "$VER" ]]; then
+    echo "Failed to detect latest version for node_exporter!"
+    exit 1
+fi
+
+TARBALL_URL="${SF_URL}${VER}/node_exporter-${VER#v}.linux-amd64.tar.gz/download"
+
+echo "latest node_exporter version: $VER"
+
+wget -O /tmp/ne.tar.gz "$TARBALL_URL"
+tar -xzf /tmp/ne.tar.gz -C /tmp
 mv /tmp/node_exporter-*/node_exporter /usr/local/bin/
-rm -rf /tmp/ne.tar.gz /tmp/node_exporter-*
+rm -rf /tmp/ne.tar.gz /tmp/node_exporter-*/
 
 echo "adding systemd service for node_exporter"
 cat <<EOF > /etc/systemd/system/node_exporter.service

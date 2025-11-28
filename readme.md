@@ -1,6 +1,12 @@
 # cloud-init
 personal init script for servers
 
+## GitHub users
+This repo is mirrored to GitHub from the [GitLab repository](https://gitlab.com/ametysti/cloud-init).
+Reasoning behind this is because GitHub still in the big 2020s [does not support ipv6](https://ready.chair6.net/?url=https%3A%2F%2Fapi.github.com). 
+
+For my ipv6-only servers this is a problem, so no links in the files use GitHub anymore. gitlab better anyway :p
+
 ## features
 - tailscale installation
 - node_exporter that listens on the tailscale interface only. for monitoring the server
