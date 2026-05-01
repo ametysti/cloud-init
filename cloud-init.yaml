@@ -1,19 +1,100 @@
 #cloud-config
+bootcmd:
+  - |
+    if ! ip -4 addr show | grep -q "scope global"; then
+      cat <<EOF >> /etc/hosts
+    2a01:4f8:c010:d56::2 github.com
+    2a01:4f8:c010:d56::3 api.github.com
+    2606:50c0:8000::133 objects.githubusercontent.com
+    EOF
+    fi
+
 package_update: true
+package_upgrade: true
 packages:
   - curl
   - wget
   - cron
-  - ipset
+  - nftables
+  - vim
+  - htop
+  - tree
+  - net-tools
+  - dnsutils
+  - unzip
+  - unattended-upgrades
+  - gnupg
+
+write_files:
+  - path: /etc/nftables.conf
+    permissions: '0644'
+    content: |
+      table inet filter {
+          set cf_v4 { type ipv4_addr; flags interval; }
+          set cf_v6 { type ipv6_addr; flags interval; }
+          #set bunny_v4 { type ipv4_addr; flags interval; }
+          #set bunny_v6 { type ipv6_addr; flags interval; }
+
+          chain input {
+              type filter hook input priority 0;
+              policy drop;
+
+              iif lo accept
+              ct state established,related accept
+              iifname "tailscale0" accept
+
+              tcp dport 443 ip saddr @cf_v4 accept
+              tcp dport 443 ip6 saddr @cf_v6 accept
+          }
+      }
+  - path: /etc/systemd/system/cdn-whitelist.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Update CDN IP sets
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/cdn-whitelist.sh
+  - path: /etc/systemd/system/cdn-whitelist.timer
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Run CDN whitelist updater hourly
+
+      [Timer]
+      OnBootSec=2min
+      OnUnitActiveSec=1h
+      Persistent=true
+
+      [Install]
+      WantedBy=timers.target
+
+timezone: UTC
 
 runcmd:
-  # setup initialization script
-  - until curl -sSL https://gitlab.com/ametysti/cloud-init/-/raw/main/init.sh -o /tmp/init.sh; do sleep 2; done
-  - chmod +x /tmp/init.sh
-  - TS_AUTH_KEY="" /tmp/init.sh
+  - systemctl enable nftables
+  - systemctl start nftables
 
-  # setup cdn-whitelist and crontab
-  - until curl -sSL https://gitlab.com/ametysti/cloud-init/-/raw/main/cdn-whitelist.sh -o /opt/cdn-whitelist.sh; do sleep 2; done
-  - chmod +x /opt/cdn-whitelist.sh
-  - /opt/cdn-whitelist.sh
-  - crontab -l | { cat; echo "0 * * * * /opt/cdn-whitelist.sh >/dev/null 2>&1"; } | crontab -
+  - |
+    curl -sSL --retry 10 --retry-delay 2 --retry-connrefused \
+      https://raw.githubusercontent.com/ametysti/cloud-init/refs/heads/main/cdn-whitelist.sh \
+      -o /usr/local/bin/cdn-whitelist.sh
+    chmod +x /usr/local/bin/cdn-whitelist.sh
+
+  - /usr/local/bin/cdn-whitelist.sh
+  - nft -f /etc/nftables.conf
+
+  - systemctl daemon-reload
+  - systemctl enable --now cdn-whitelist.timer
+
+  - |
+    (
+      curl -sSL --retry 10 --retry-delay 2 --retry-connrefused \
+        https://raw.githubusercontent.com/ametysti/cloud-init/refs/heads/main/init.sh \
+        -o /tmp/init.sh
+      chmod +x /tmp/init.sh
+      TS_AUTH_KEY="" /tmp/init.sh
+    ) &
